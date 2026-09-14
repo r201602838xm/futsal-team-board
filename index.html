@@ -351,8 +351,25 @@
     color:var(--accent);
     line-height:1;
     font-variant-numeric:tabular-nums;
+    flex:0 0 auto;
   }
   .group-name{ font-size:14px; font-weight:700; flex:1 1 auto; }
+  .group-name-input{
+    flex:1 1 auto;
+    min-width:0;
+    font-size:14px;
+    font-weight:700;
+    font-family:inherit;
+    color:var(--ink);
+    background:transparent;
+    border:1px solid transparent;
+    border-radius:6px;
+    padding:3px 6px;
+    margin:-3px -6px;
+  }
+  .group-name-input::placeholder{ color:var(--ink-dim); font-weight:600; }
+  .group-name-input:hover{ border-color:var(--line); }
+  .group-name-input:focus{ outline:none; border-color:var(--accent); background:var(--surface); box-shadow:0 0 0 2px var(--accent-soft); }
   .group-count{
     font-family:'Barlow Condensed',sans-serif;
     font-size:13px;
@@ -768,6 +785,12 @@
   var POS_LABEL = { DFGK:"DF/GK", MF:"MF", FW:"FW" };
   var SLOT_TEMPLATE = { FW:4, MF:3, DFGK:4 }; // 11人制フォーメーション（DF3+GK1をDF/GK区分に統合）
   var STORAGE_KEY = "futsal-board:assignments:v1";
+  var LETTERS = ["A","B","C","D","E","F","G","H"];
+  function boardLetter(b){ return LETTERS[(b.order || 1) - 1] || String(b.order); }
+  function boardDisplayName(b){
+    var nm = (b.name || "").trim();
+    return nm ? nm : ("チーム" + boardLetter(b));
+  }
 
   var players = [];        // full roster
   var playersById = {};
@@ -847,16 +870,28 @@
     try {
       var raw = window.localStorage.getItem(STORAGE_KEY);
       storageAvailable = true;
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.__v === 2){
+        return { assignments: parsed.assignments || {}, boardNames: parsed.boardNames || {} };
+      }
+      // legacy format: the stored value was the assignments map itself
+      return { assignments: parsed || {}, boardNames: {} };
     } catch(e){
       storageAvailable = false;
       return null;
     }
   }
 
+  function currentBoardNames(){
+    var map = {};
+    boards.forEach(function(b){ map[b.id] = b.name || ""; });
+    return map;
+  }
+
   function saveLocal(){
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ __v: 2, assignments: assignments, boardNames: currentBoardNames() }));
       storageAvailable = true;
     } catch(e){
       storageAvailable = false;
@@ -883,7 +918,7 @@
     var max = Math.max(1, Math.max.apply(null, counts));
     el.distribution.innerHTML = boards.map(function(b, i){
       var h = Math.round((counts[i] / max) * 40) + 4;
-      return '<div class="dist-col" title="' + escapeHtml(b.name) + '：' + counts[i] + '名">' +
+      return '<div class="dist-col" title="' + escapeHtml(boardDisplayName(b)) + '：' + counts[i] + '名">' +
         '<div class="dist-bar-track"><div class="dist-bar" style="height:' + h + 'px"></div></div>' +
         '<span class="dist-label num">' + counts[i] + '</span>' +
         '</div>';
@@ -980,8 +1015,8 @@
       return (
         '<div class="group-card" data-board="' + b.id + '">' +
         '<div class="group-head">' +
-        '<span class="group-order num">' + String(b.order).padStart(2,"0") + '</span>' +
-        '<span class="group-name">' + escapeHtml(b.name) + '</span>' +
+        '<span class="group-order num">' + boardLetter(b) + '</span>' +
+        '<input type="text" class="group-name-input" id="team-name-' + b.id + '" data-board="' + b.id + '" value="' + escapeHtml(b.name || "") + '" placeholder="チーム名を入力" maxlength="30" autocomplete="off">' +
         '<span class="group-count num">' + members.length + '</span>' +
         '</div>' +
         '<div class="group-body" data-board="' + b.id + '">' + body + '</div>' +
@@ -1004,7 +1039,7 @@
     var current = assignments[p.id];
     var targets = boards.map(function(b){
       return '<button type="button" class="tray-target' + (current === b.id ? " current" : "") + '" data-target="' + b.id + '">' +
-        String(b.order).padStart(2,"0") + ' ' + escapeHtml(b.name) + '</button>';
+        boardLetter(b) + ' ' + escapeHtml(boardDisplayName(b)) + '</button>';
     }).join("");
     targets += '<button type="button" class="tray-target unassign" data-target="">未配属に戻す</button>';
     el.trayTargets.innerHTML = targets;
@@ -1033,8 +1068,8 @@
       return (
         '<div class="admin-group-card">' +
         '<div class="admin-group-head">' +
-        '<span class="group-order num">' + String(b.order).padStart(2,"0") + '</span>' +
-        '<span class="group-name">' + escapeHtml(b.name) + '</span>' +
+        '<span class="group-order num">' + boardLetter(b) + '</span>' +
+        '<span class="group-name">' + escapeHtml(boardDisplayName(b)) + '</span>' +
         '<span class="group-count num">' + members.length + '</span>' +
         '</div>' +
         '<div class="admin-group-sub">' + breakdown + '</div>' +
@@ -1083,6 +1118,16 @@
 
   function assignPlayer(playerId, boardId){
     persistOne(playerId, boardId);
+  }
+
+  function renameBoard(boardId, name){
+    var b = boards.find(function(x){ return x.id === boardId; });
+    if (!b) return;
+    b.name = name;
+    renderDistribution();
+    renderTray();
+    renderAdminGroups();
+    saveLocal();
   }
 
   function selectPlayer(id){
@@ -1134,7 +1179,7 @@
     var rows = [["グループ","ポジション","名前","コメント"]];
     boards.forEach(function(b){
       players.filter(function(p){ return assignments[p.id] === b.id; }).forEach(function(p){
-        rows.push([b.name, POS_LABEL[p.position], p.name, p.comment || ""]);
+        rows.push([boardDisplayName(b), POS_LABEL[p.position], p.name, p.comment || ""]);
       });
     });
     var unassigned = players.filter(function(p){ return !isAssigned(p.id); });
@@ -1236,6 +1281,21 @@
   });
   el.groupsGrid.addEventListener("keydown", onRowKeydown);
 
+  el.groupsGrid.addEventListener("input", function(e){
+    var input = e.target.closest(".group-name-input");
+    if (!input) return;
+    var b = boards.find(function(x){ return x.id === input.dataset.board; });
+    if (b) b.name = input.value;
+  });
+  el.groupsGrid.addEventListener("change", function(e){
+    var input = e.target.closest(".group-name-input");
+    if (!input) return;
+    renameBoard(input.dataset.board, input.value.trim());
+  });
+  el.groupsGrid.addEventListener("click", function(e){
+    if (e.target.closest(".group-name-input")) e.stopPropagation();
+  });
+
   el.poolPanel.addEventListener("click", function(e){
     if (e.target.closest("[data-player]") || e.target.closest("h2") || e.target.closest("p")) return;
     if (selectedId){
@@ -1293,7 +1353,12 @@
     players.forEach(function(p){ playersById[p.id] = p; });
 
     var localSaved = loadLocal();
-    assignments = localSaved || seed.assignments || {};
+    assignments = (localSaved && localSaved.assignments) || seed.assignments || {};
+    if (localSaved && localSaved.boardNames){
+      boards.forEach(function(b){
+        if (Object.prototype.hasOwnProperty.call(localSaved.boardNames, b.id)) b.name = localSaved.boardNames[b.id] || "";
+      });
+    }
 
     applyMode();
     renderAll();
