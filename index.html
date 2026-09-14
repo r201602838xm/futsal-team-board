@@ -716,6 +716,61 @@
   }
   .admin-empty{ font-size:12px; color:var(--ink-dim); padding:8px 2px; }
   .admin-unassigned .admin-group-head .group-name{ color:var(--danger); }
+  .admin-group-card{ cursor:pointer; transition:box-shadow .15s ease; }
+  .admin-group-card:hover, .admin-group-card:focus-visible{ box-shadow:0 0 0 2px var(--accent-soft); outline:none; }
+  .admin-reveal-hint{ font-size:10.5px; color:var(--ink-dim); padding:0 12px 10px; text-align:right; }
+
+  /* ---------- reveal overlay (admin: show one team full-screen) ---------- */
+  .reveal-overlay{
+    position:fixed; inset:0; z-index:60;
+    background:rgba(9,13,10,.8);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .reveal-card{
+    position:relative;
+    width:100%; max-width:760px; max-height:92vh; overflow-y:auto;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    padding:clamp(28px,5vw,52px);
+    display:flex; flex-direction:column; gap:clamp(18px,3vw,28px);
+  }
+  .reveal-close{
+    position:absolute; top:14px; right:14px;
+    width:40px; height:40px; border-radius:50%;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+    font-size:20px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .reveal-close:hover{ border-color:var(--accent); color:var(--accent); }
+  .reveal-head{ display:flex; align-items:baseline; gap:18px; padding-right:44px; }
+  .reveal-letter{
+    font-family:'Barlow Condensed',sans-serif; font-weight:700;
+    font-size:clamp(64px,13vw,132px); line-height:.85; color:var(--accent); flex:0 0 auto;
+  }
+  .reveal-name{ font-size:clamp(26px,5.5vw,52px); font-weight:800; line-height:1.08; flex:1 1 auto; min-width:0; text-wrap:balance; }
+  .reveal-sub{ font-size:clamp(13px,1.8vw,17px); color:var(--ink-dim); font-weight:600; }
+  .reveal-members{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:clamp(10px,2vw,16px);
+  }
+  .reveal-member{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border:1px solid var(--line); border-radius:14px; background:var(--surface-2);
+  }
+  .reveal-member .avatar, .reveal-member .avatar-fallback{ width:clamp(38px,5vw,54px); height:clamp(38px,5vw,54px); font-size:clamp(15px,2vw,20px); }
+  .reveal-member-name{
+    font-size:clamp(17px,2.6vw,26px); font-weight:700; flex:1 1 auto; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .reveal-member .pos-chip{ font-size:clamp(11px,1.4vw,15px); padding:4px 10px; }
+  .reveal-empty{ font-size:clamp(15px,2vw,19px); color:var(--ink-dim); padding:8px 2px; }
+  .reveal-footer{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding-top:clamp(10px,2vw,16px); border-top:1px solid var(--line);
+  }
+  .reveal-counter{ font-size:12.5px; color:var(--ink-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -778,6 +833,23 @@
   </div>
 </div>
 
+<div class="reveal-overlay" id="revealOverlay" hidden>
+  <div class="reveal-card" role="dialog" aria-modal="true" aria-labelledby="revealName">
+    <button class="reveal-close" id="revealClose" type="button" aria-label="閉じる">✕</button>
+    <div class="reveal-head">
+      <span class="reveal-letter" id="revealLetter"></span>
+      <h2 class="reveal-name" id="revealName"></h2>
+    </div>
+    <div class="reveal-sub" id="revealSub"></div>
+    <div class="reveal-members" id="revealMembers"></div>
+    <div class="reveal-footer">
+      <button class="btn" id="revealPrev" type="button">← 前のチーム</button>
+      <span class="reveal-counter" id="revealCounter"></span>
+      <button class="btn" id="revealNext" type="button">次のチーム →</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -801,6 +873,8 @@
   var searchTerm = "";
   var viewMode = "list"; // "list" | "pitch"
   var storageAvailable = false;
+  var revealList = [];
+  var revealIndex = -1;
 
   var el = {
     stats: document.getElementById("stats"),
@@ -825,6 +899,15 @@
     adminView: document.getElementById("adminView"),
     adminGroups: document.getElementById("adminGroups"),
     backToEditor: document.getElementById("backToEditor"),
+    revealOverlay: document.getElementById("revealOverlay"),
+    revealClose: document.getElementById("revealClose"),
+    revealLetter: document.getElementById("revealLetter"),
+    revealName: document.getElementById("revealName"),
+    revealSub: document.getElementById("revealSub"),
+    revealMembers: document.getElementById("revealMembers"),
+    revealPrev: document.getElementById("revealPrev"),
+    revealNext: document.getElementById("revealNext"),
+    revealCounter: document.getElementById("revealCounter"),
   };
 
   var adminMode = location.hash.replace("#", "") === "admin";
@@ -832,6 +915,7 @@
   function applyMode(){
     el.editorView.hidden = adminMode;
     el.adminView.hidden = !adminMode;
+    closeReveal();
   }
 
   window.addEventListener("hashchange", function(){
@@ -1066,7 +1150,7 @@
         ? members.map(adminMemberRowHtml).join("")
         : '<div class="admin-empty">未配属</div>';
       return (
-        '<div class="admin-group-card">' +
+        '<div class="admin-group-card" data-reveal="' + b.id + '" tabindex="0" role="button" aria-label="' + escapeHtml(boardDisplayName(b)) + 'を大きく表示">' +
         '<div class="admin-group-head">' +
         '<span class="group-order num">' + boardLetter(b) + '</span>' +
         '<span class="group-name">' + escapeHtml(boardDisplayName(b)) + '</span>' +
@@ -1074,6 +1158,7 @@
         '</div>' +
         '<div class="admin-group-sub">' + breakdown + '</div>' +
         '<div class="admin-group-body">' + rows + '</div>' +
+        '<div class="admin-reveal-hint">タップして大きく表示</div>' +
         '</div>'
       );
     }).join("");
@@ -1081,16 +1166,118 @@
     var unassigned = players.filter(function(p){ return !isAssigned(p.id); });
     if (unassigned.length){
       html += (
-        '<div class="admin-group-card admin-unassigned">' +
+        '<div class="admin-group-card admin-unassigned" data-reveal="unassigned" tabindex="0" role="button" aria-label="未配属を大きく表示">' +
         '<div class="admin-group-head">' +
         '<span class="group-name">未配属</span>' +
         '<span class="group-count num">' + unassigned.length + '</span>' +
         '</div>' +
         '<div class="admin-group-body">' + unassigned.map(adminMemberRowHtml).join("") + '</div>' +
+        '<div class="admin-reveal-hint">タップして大きく表示</div>' +
         '</div>'
       );
     }
     el.adminGroups.innerHTML = html;
+  }
+
+  /* ---------------- reveal overlay (admin: show one team full-screen) ---------------- */
+
+  function buildRevealList(){
+    var list = boards.map(function(b){ return { type:"board", id:b.id }; });
+    var unassigned = players.filter(function(p){ return !isAssigned(p.id); });
+    if (unassigned.length) list.push({ type:"unassigned" });
+    return list;
+  }
+
+  function revealDataFor(entry){
+    var letter = "";
+    var name;
+    var members;
+    if (entry.type === "unassigned"){
+      name = "未配属";
+      members = players.filter(function(p){ return !isAssigned(p.id); });
+    } else {
+      var b = boards.find(function(x){ return x.id === entry.id; });
+      if (!b) return null;
+      letter = boardLetter(b);
+      name = boardDisplayName(b);
+      members = players.filter(function(p){ return assignments[p.id] === b.id; });
+    }
+    var byPos = { DFGK:0, MF:0, FW:0 };
+    members.forEach(function(p){ byPos[p.position]++; });
+    return {
+      letter: letter,
+      name: name,
+      sub: "DF/GK " + byPos.DFGK + " ・ MF " + byPos.MF + " ・ FW " + byPos.FW,
+      members: members
+    };
+  }
+
+  function revealMemberHtml(p){
+    return (
+      '<div class="reveal-member">' +
+      avatarHtml(p, 54) +
+      '<span class="reveal-member-name">' + escapeHtml(p.name) + '</span>' +
+      '<span class="pos-chip pos-' + p.position + '">' + POS_LABEL[p.position] + '</span>' +
+      '</div>'
+    );
+  }
+
+  function renderReveal(){
+    if (revealIndex < 0 || !revealList[revealIndex]) return;
+    var data = revealDataFor(revealList[revealIndex]);
+    if (!data){ closeReveal(); return; }
+    el.revealLetter.textContent = data.letter;
+    el.revealLetter.hidden = !data.letter;
+    el.revealName.textContent = data.name;
+    el.revealSub.textContent = data.sub;
+    el.revealSub.hidden = !data.sub;
+    el.revealMembers.innerHTML = data.members.length
+      ? data.members.map(revealMemberHtml).join("")
+      : '<div class="reveal-empty">メンバーがいません</div>';
+    el.revealCounter.textContent = (revealIndex + 1) + " / " + revealList.length;
+    el.revealPrev.disabled = revealIndex <= 0;
+    el.revealNext.disabled = revealIndex >= revealList.length - 1;
+  }
+
+  function openReveal(key){
+    revealList = buildRevealList();
+    var idx = revealList.findIndex(function(e){
+      return key === "unassigned" ? e.type === "unassigned" : (e.type === "board" && e.id === key);
+    });
+    if (idx === -1) return;
+    revealIndex = idx;
+    renderReveal();
+    el.revealOverlay.hidden = false;
+    document.body.style.overflow = "hidden";
+    el.revealClose.focus();
+  }
+
+  function closeReveal(){
+    if (revealIndex === -1 && el.revealOverlay.hidden) return;
+    revealIndex = -1;
+    el.revealOverlay.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  function stepReveal(delta){
+    if (revealIndex < 0) return;
+    var next = revealIndex + delta;
+    if (next < 0 || next >= revealList.length) return;
+    revealIndex = next;
+    renderReveal();
+  }
+
+  function refreshRevealIfOpen(){
+    if (el.revealOverlay.hidden || revealIndex < 0) return;
+    var current = revealList[revealIndex];
+    var key = current && (current.type === "unassigned" ? "unassigned" : current.id);
+    revealList = buildRevealList();
+    var idx = revealList.findIndex(function(e){
+      return key === "unassigned" ? e.type === "unassigned" : (e.type === "board" && e.id === key);
+    });
+    if (idx === -1){ closeReveal(); return; }
+    revealIndex = idx;
+    renderReveal();
   }
 
   function renderAll(){
@@ -1100,6 +1287,7 @@
     renderGroups();
     renderTray();
     renderAdminGroups();
+    refreshRevealIfOpen();
   }
 
   /* ---------------- state mutation ---------------- */
@@ -1232,6 +1420,31 @@
   el.resetBtn.addEventListener("click", resetAll);
   el.exportBtn.addEventListener("click", exportCsv);
   el.trayCancel.addEventListener("click", function(){ selectedId = null; renderPool(); renderGroups(); renderTray(); });
+
+  el.adminGroups.addEventListener("click", function(e){
+    var card = e.target.closest(".admin-group-card");
+    if (!card) return;
+    openReveal(card.dataset.reveal);
+  });
+  el.adminGroups.addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var card = e.target.closest(".admin-group-card");
+    if (!card) return;
+    e.preventDefault();
+    openReveal(card.dataset.reveal);
+  });
+  el.revealClose.addEventListener("click", closeReveal);
+  el.revealOverlay.addEventListener("click", function(e){
+    if (e.target === el.revealOverlay) closeReveal();
+  });
+  el.revealPrev.addEventListener("click", function(){ stepReveal(-1); });
+  el.revealNext.addEventListener("click", function(){ stepReveal(1); });
+  document.addEventListener("keydown", function(e){
+    if (el.revealOverlay.hidden) return;
+    if (e.key === "Escape"){ closeReveal(); return; }
+    if (e.key === "ArrowLeft"){ stepReveal(-1); return; }
+    if (e.key === "ArrowRight"){ stepReveal(1); return; }
+  });
 
   el.trayTargets.addEventListener("click", function(e){
     var btn = e.target.closest(".tray-target");
