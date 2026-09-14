@@ -1,0 +1,72 @@
+[
+ {
+  "id": "e10pk6rx3se50tmirrri",
+  "name": "グループ1",
+  "order": 1,
+  "assignments": {},
+  "updatedAt": 1789085757439
+ },
+ {
+  "id": "1h2wsy491ju0r60qy6vx",
+  "name": "グループ2",
+  "order": 2,
+  "assignments": {},
+  "updatedAt": 1789085757859
+ },
+ {
+  "id": "2isyevvcejymj32km8rs",
+  "name": "グループ3",
+  "order": 3,
+  "assignments": {},
+  "updatedAt": 1789085758289
+ },
+ {
+  "id": "6ldnokoai1lt2po6jzg3",
+  "name": "グループ4",
+  "order": 4,
+  "assignments": {},
+  "updatedAt": 1789085758708
+ },
+ {
+  "id": "aoqisojftqfs096zvb11",
+  "name": "グループ5",
+  "order": 5,
+  "assignments": {},
+  "updatedAt": 1789085759119
+ },
+ {
+  "id": "sgdnoi3gz1uvivxratr1",
+  "name": "グループ6",
+  "order": 6,
+  "assignments": {},
+  "updatedAt": 1789085759848
+ },
+ {
+  "id": "y7vdnftcgxnc1922ushl",
+  "name": "グループ7",
+  "order": 7,
+  "assignments": {},
+  "updatedAt": 1789085760263
+ },
+ {
+  "id": "r2vwzw2oqjhh25m6fkez",
+  "name": "グループ8",
+  "order": 8,
+  "assignments": {},
+  "updatedAt": 1789085760697
+ },
+ {
+  "id": "wyn54577g8xm6sp19amm",
+  "name": "グループ9",
+  "order": 9,
+  "assignments": {},
+  "updatedAt": 1789085761134
+ },
+ {
+  "id": "610t6ajgkstprwzavd9w",
+  "name": "グループ10",
+  "order": 10,
+  "assignments": {},
+  "updatedAt": 1789085761497
+ }
+]

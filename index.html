@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>フットサル編成ボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap">
+<style>
+  :root{
+    --bg:#F5F7F1;
+    --surface:#FFFFFF;
+    --surface-2:#EBEFE4;
+    --ink:#1B241E;
+    --ink-dim:#5C6A5F;
+    --line:#DBE2D3;
+    --accent:#2F6D4F;
+    --accent-ink:#FFFFFF;
+    --accent-soft:#E3EFE6;
+    --accent-2:#C9622A;
+    --accent-2-soft:#F7E7DA;
+    --accent-3:#2E5C8A;
+    --accent-3-soft:#E1E9F2;
+    --danger:#B3432B;
+    --danger-soft:#F6E2DC;
+    --shadow: 0 1px 2px rgba(27,36,30,.06), 0 8px 24px -12px rgba(27,36,30,.18);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10140E;
+      --surface:#171D16;
+      --surface-2:#1E2620;
+      --ink:#EAEEE7;
+      --ink-dim:#98A599;
+      --line:#2A332A;
+      --accent:#57C98B;
+      --accent-ink:#0C1710;
+      --accent-soft:#1B3327;
+      --accent-2:#E08A52;
+      --accent-2-soft:#3A2A1E;
+      --accent-3:#7FAEDD;
+      --accent-3-soft:#1F2E42;
+      --danger:#E0725A;
+      --danger-soft:#3B241E;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 28px -12px rgba(0,0,0,.55);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10140E;
+    --surface:#171D16;
+    --surface-2:#1E2620;
+    --ink:#EAEEE7;
+    --ink-dim:#98A599;
+    --line:#2A332A;
+    --accent:#57C98B;
+    --accent-ink:#0C1710;
+    --accent-soft:#1B3327;
+    --accent-2:#E08A52;
+    --accent-2-soft:#3A2A1E;
+    --accent-3:#7FAEDD;
+    --accent-3-soft:#1F2E42;
+    --danger:#E0725A;
+    --danger-soft:#3B241E;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 28px -12px rgba(0,0,0,.55);
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{ font-family:'Barlow Condensed','Noto Sans JP',sans-serif; font-variant-numeric:tabular-nums; }
+
+  .app{
+    max-width:1280px;
+    margin:0 auto;
+    padding: 20px 16px 96px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:14px;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    margin:0 0 2px;
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    color:var(--accent);
+  }
+  h1{
+    margin:0;
+    font-size:26px;
+    font-weight:900;
+    letter-spacing:.01em;
+    text-wrap:balance;
+  }
+  .stats{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .stat{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:6px 12px;
+    min-width:74px;
+    text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .stat b{
+    display:block;
+    font-family:'Barlow Condensed',sans-serif;
+    font-variant-numeric:tabular-nums;
+    font-size:22px;
+    font-weight:700;
+    line-height:1.1;
+  }
+  .stat span{
+    font-size:10.5px;
+    color:var(--ink-dim);
+    letter-spacing:.03em;
+  }
+
+  /* ---------- distribution mini chart ---------- */
+  .distribution{
+    display:flex;
+    align-items:flex-end;
+    gap:6px;
+    padding:14px 14px 10px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  .dist-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    flex:1 0 34px;
+    min-width:34px;
+  }
+  .dist-bar-track{
+    width:100%;
+    max-width:22px;
+    height:44px;
+    display:flex;
+    align-items:flex-end;
+    background:var(--surface-2);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .dist-bar{
+    width:100%;
+    background:var(--accent);
+    border-radius:4px 4px 0 0;
+    min-height:3px;
+    transition:height .25s ease;
+  }
+  .dist-label{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:12px;
+    color:var(--ink-dim);
+    font-weight:600;
+  }
+
+  /* ---------- toolbar ---------- */
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+  }
+  #searchInput{
+    flex:1 1 180px;
+    min-width:140px;
+    padding:8px 12px;
+    border-radius:9px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:14px;
+    font-family:inherit;
+  }
+  #searchInput:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .filter-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-dim);
+    padding:7px 13px;
+    border-radius:999px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .chip.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .chip:focus-visible, .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:auto; }
+  .btn{
+    border-radius:9px;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .btn-accent{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .btn-ghost{ background:var(--surface); }
+  .btn-danger-ghost{ color:var(--danger); border-color:var(--danger); background:var(--danger-soft); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .sync-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:11.5px;
+    color:var(--ink-dim);
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    white-space:nowrap;
+  }
+  .sync-dot{ width:7px; height:7px; border-radius:50%; background:var(--ink-dim); }
+  .sync-pill.on .sync-dot{ background:var(--accent); }
+  .sync-pill.off .sync-dot{ background:var(--accent-2); }
+
+  /* ---------- layout ---------- */
+  .board-layout{
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+  }
+  @media (max-width: 860px){
+    .board-layout{ flex-direction:column; }
+    .pool{ width:100% !important; max-height:none !important; }
+  }
+
+  .pool{
+    width:270px;
+    flex:0 0 270px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    padding:14px;
+    position:sticky;
+    top:16px;
+    max-height:calc(100vh - 32px);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .pool h2{
+    margin:0;
+    font-size:14px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .pool h2 .count-badge{
+    font-family:'Barlow Condensed',sans-serif;
+    background:var(--accent-soft);
+    color:var(--accent);
+    border-radius:999px;
+    padding:1px 9px;
+    font-size:13px;
+    font-weight:700;
+  }
+  .pool-hint{ font-size:11.5px; color:var(--ink-dim); margin:-4px 0 0; }
+  .pool-list{
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-right:2px;
+  }
+  .pool-empty{
+    font-size:12.5px;
+    color:var(--ink-dim);
+    padding:14px 6px;
+    text-align:center;
+    border:1px dashed var(--line);
+    border-radius:8px;
+  }
+
+  .groups-grid{
+    flex:1 1 auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:12px;
+    min-width:0;
+  }
+  .group-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    min-height:150px;
+  }
+  .group-card.drop-hover{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .group-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    padding:10px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .group-order{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:26px;
+    color:var(--accent);
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+  }
+  .group-name{ font-size:14px; font-weight:700; flex:1 1 auto; }
+  .group-count{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:13px;
+    color:var(--ink-dim);
+    font-weight:600;
+  }
+  .group-body{
+    flex:1 1 auto;
+    padding:8px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-height:64px;
+  }
+  .group-empty{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    color:var(--ink-dim);
+    border:1px dashed var(--line);
+    border-radius:8px;
+    padding:12px;
+    text-align:center;
+  }
+
+  /* ---------- player rows / cards ---------- */
+  .pool-row, .member-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px;
+    border-radius:8px;
+    border:1px solid transparent;
+    background:var(--surface);
+    cursor:pointer;
+    text-align:left;
+    width:100%;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  .pool-row:hover, .member-row:hover{ background:var(--surface-2); }
+  .pool-row.dimmed, .member-row.dimmed{ opacity:.32; }
+  .pool-row.selected, .member-row.selected{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  .avatar{
+    border-radius:50%;
+    object-fit:cover;
+    background:var(--surface-2);
+    flex:0 0 auto;
+  }
+  .avatar-fallback{
+    border-radius:50%;
+    background:var(--accent-soft);
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    flex:0 0 auto;
+  }
+  .pool-row .avatar, .pool-row .avatar-fallback{ width:32px; height:32px; font-size:13px; }
+  .member-row .avatar, .member-row .avatar-fallback{ width:42px; height:42px; font-size:16px; }
+  .row-main{ min-width:0; flex:1 1 auto; }
+  .row-name{
+    font-size:13.5px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .member-row .row-name{ font-size:14px; }
+  .row-comment{
+    font-size:11.5px;
+    color:var(--ink-dim);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-top:1px;
+  }
+  .pos-chip{
+    flex:0 0 auto;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:5px;
+    letter-spacing:.02em;
+  }
+  .pos-DFGK{ background:var(--accent-3-soft); color:var(--accent-3); }
+  .pos-MF{ background:var(--accent-soft); color:var(--accent); }
+  .pos-FW{ background:var(--accent-2-soft); color:var(--accent-2); }
+
+  .remove-btn{
+    flex:0 0 auto;
+    width:22px; height:22px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink-dim);
+    font-size:12px;
+    line-height:1;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .remove-btn:hover{ background:var(--danger-soft); color:var(--danger); border-color:var(--danger); }
+
+  /* ---------- tray ---------- */
+  .tray{
+    position:fixed;
+    left:16px; right:16px; bottom:16px;
+    max-width:1248px;
+    margin:0 auto;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:0 12px 40px -8px rgba(0,0,0,.35);
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    z-index:40;
+  }
+  .tray-player{ display:flex; align-items:center; gap:10px; flex:0 0 auto; }
+  .tray-player .avatar, .tray-player .avatar-fallback{ width:38px; height:38px; font-size:14px; }
+  .tray-player-name{ font-size:13.5px; font-weight:700; white-space:nowrap; }
+  .tray-player-sub{ font-size:11px; color:var(--ink-dim); }
+  .tray-targets{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    flex:1 1 auto;
+    padding:2px;
+  }
+  .tray-target{
+    flex:0 0 auto;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:7px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .tray-target:hover{ border-color:var(--accent); }
+  .tray-target.current{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .tray-target.unassign{ color:var(--danger); }
+  .tray-cancel{
+    flex:0 0 auto;
+    width:30px; height:30px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--ink-dim);
+    cursor:pointer;
+    font-size:14px;
+  }
+
+  @media (max-width:600px){
+    .tray{ flex-wrap:wrap; }
+    .tray-targets{ order:3; flex-basis:100%; }
+  }
+
+  .loading{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:13.5px;
+  }
+  .footnote{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-dim);
+    padding-top:8px;
+  }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="title-block">
+      <p class="eyebrow">TEAM DRAFT BOARD</p>
+      <h1>フットサル編成ボード</h1>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="distribution" id="distribution"></div>
+
+  <div class="toolbar">
+    <input type="search" id="searchInput" placeholder="名前で検索" aria-label="名前で検索">
+    <div class="filter-chips" id="filterChips">
+      <button class="chip active" data-pos="all" type="button">全員</button>
+      <button class="chip" data-pos="DFGK" type="button">DF/GK</button>
+      <button class="chip" data-pos="MF" type="button">MF</button>
+      <button class="chip" data-pos="FW" type="button">FW</button>
+    </div>
+    <div class="actions">
+      <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncLabel">読み込み中</span></span>
+      <button class="btn btn-accent" id="autoAssignBtn" type="button">未配属を自動振り分け</button>
+      <button class="btn btn-ghost" id="exportBtn" type="button">CSV書き出し</button>
+      <button class="btn btn-danger-ghost" id="resetBtn" type="button">リセット</button>
+    </div>
+  </div>
+
+  <div class="board-layout">
+    <aside class="pool" id="poolPanel">
+      <h2>未配属 <span class="count-badge" id="poolCount">0</span></h2>
+      <p class="pool-hint">選手をクリックして選択し、下のトレイからグループを選んでください</p>
+      <div class="pool-list" id="poolList"><div class="loading">読み込み中…</div></div>
+    </aside>
+    <section class="groups-grid" id="groupsGrid"></section>
+  </div>
+
+  <p class="footnote">配属状況はこのブラウザにのみ保存されます（他の人とは共有されません）</p>
+
+  <div class="tray" id="tray" hidden>
+    <div class="tray-player" id="trayPlayer"></div>
+    <div class="tray-targets" id="trayTargets"></div>
+    <button class="tray-cancel" id="trayCancel" type="button" aria-label="選択解除">✕</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var POS_LABEL = { DFGK:"DF/GK", MF:"MF", FW:"FW" };
+  var STORAGE_KEY = "futsal-board:assignments:v1";
+
+  var players = [];        // full roster
+  var playersById = {};
+  var boards = [];         // [{id,name,order}]
+  var assignments = {};    // playerId -> boardId|null
+  var selectedId = null;
+  var filterPos = "all";
+  var searchTerm = "";
+  var storageAvailable = false;
+
+  var el = {
+    stats: document.getElementById("stats"),
+    distribution: document.getElementById("distribution"),
+    poolList: document.getElementById("poolList"),
+    poolCount: document.getElementById("poolCount"),
+    groupsGrid: document.getElementById("groupsGrid"),
+    searchInput: document.getElementById("searchInput"),
+    filterChips: document.getElementById("filterChips"),
+    autoAssignBtn: document.getElementById("autoAssignBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+    exportBtn: document.getElementById("exportBtn"),
+    syncPill: document.getElementById("syncPill"),
+    syncLabel: document.getElementById("syncLabel"),
+    tray: document.getElementById("tray"),
+    trayPlayer: document.getElementById("trayPlayer"),
+    trayTargets: document.getElementById("trayTargets"),
+    trayCancel: document.getElementById("trayCancel"),
+    poolPanel: document.getElementById("poolPanel"),
+  };
+
+  function escapeHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function isAssigned(playerId){
+    var b = assignments[playerId];
+    if (!b) return false;
+    return boards.some(function(bd){ return bd.id === b; });
+  }
+
+  function matchesFilter(p){
+    if (filterPos !== "all" && p.position !== filterPos) return false;
+    if (searchTerm && p.name.toLowerCase().indexOf(searchTerm) === -1) return false;
+    return true;
+  }
+
+  /* ---------------- local persistence ---------------- */
+
+  function loadLocal(){
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      storageAvailable = true;
+      return raw ? JSON.parse(raw) : null;
+    } catch(e){
+      storageAvailable = false;
+      return null;
+    }
+  }
+
+  function saveLocal(){
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
+      storageAvailable = true;
+    } catch(e){
+      storageAvailable = false;
+    }
+  }
+
+  /* ---------------- rendering ---------------- */
+
+  function renderStats(){
+    var total = players.length;
+    var unassignedCount = players.filter(function(p){ return !isAssigned(p.id); }).length;
+    var assignedCount = total - unassignedCount;
+    el.stats.innerHTML =
+      '<div class="stat"><b class="num">' + total + '</b><span>登録人数</span></div>' +
+      '<div class="stat"><b class="num">' + assignedCount + '</b><span>配属済み</span></div>' +
+      '<div class="stat"><b class="num">' + unassignedCount + '</b><span>未配属</span></div>' +
+      '<div class="stat"><b class="num">' + boards.length + '</b><span>グループ数</span></div>';
+  }
+
+  function renderDistribution(){
+    var counts = boards.map(function(b){
+      return players.filter(function(p){ return assignments[p.id] === b.id; }).length;
+    });
+    var max = Math.max(1, Math.max.apply(null, counts));
+    el.distribution.innerHTML = boards.map(function(b, i){
+      var h = Math.round((counts[i] / max) * 40) + 4;
+      return '<div class="dist-col" title="' + escapeHtml(b.name) + '：' + counts[i] + '名">' +
+        '<div class="dist-bar-track"><div class="dist-bar" style="height:' + h + 'px"></div></div>' +
+        '<span class="dist-label num">' + counts[i] + '</span>' +
+        '</div>';
+    }).join("");
+  }
+
+  function avatarHtml(p, size){
+    if (p.photo){
+      return '<img class="avatar" src="' + p.photo + '" alt="" loading="lazy" width="' + size + '" height="' + size + '">';
+    }
+    var initial = (p.name || "?").trim().charAt(0);
+    return '<span class="avatar-fallback" aria-hidden="true">' + escapeHtml(initial) + '</span>';
+  }
+
+  function playerRowHtml(p, kind){
+    var dimmed = (searchTerm || filterPos !== "all") && !matchesFilter(p) ? " dimmed" : "";
+    var sel = (selectedId === p.id) ? " selected" : "";
+    var comment = kind === "member" && p.comment ? '<div class="row-comment" title="' + escapeHtml(p.comment) + '">' + escapeHtml(p.comment) + '</div>' : "";
+    var removeBtn = kind === "member" ? '<button class="remove-btn" data-remove="' + p.id + '" title="未配属に戻す" aria-label="未配属に戻す">✕</button>' : "";
+    return (
+      '<div class="' + (kind === "member" ? "member-row" : "pool-row") + dimmed + sel + '" ' +
+      'data-player="' + p.id + '" role="button" tabindex="0">' +
+      avatarHtml(p, kind === "member" ? 42 : 32) +
+      '<div class="row-main">' +
+      '<div class="row-name">' + escapeHtml(p.name) + '</div>' +
+      comment +
+      '</div>' +
+      '<span class="pos-chip pos-' + p.position + '">' + POS_LABEL[p.position] + '</span>' +
+      removeBtn +
+      '</div>'
+    );
+  }
+
+  function renderPool(){
+    var pool = players.filter(function(p){ return !isAssigned(p.id); });
+    el.poolCount.textContent = pool.length;
+    if (!pool.length){
+      el.poolList.innerHTML = '<div class="pool-empty">全員が配属済みです</div>';
+      return;
+    }
+    el.poolList.innerHTML = pool.map(function(p){ return playerRowHtml(p, "pool"); }).join("");
+  }
+
+  function renderGroups(){
+    el.groupsGrid.innerHTML = boards.map(function(b){
+      var members = players.filter(function(p){ return assignments[p.id] === b.id; });
+      var body = members.length
+        ? members.map(function(p){ return playerRowHtml(p, "member"); }).join("")
+        : '<div class="group-empty">ここに選手をドラッグ、<br>または選択して割り当て</div>';
+      return (
+        '<div class="group-card" data-board="' + b.id + '">' +
+        '<div class="group-head">' +
+        '<span class="group-order num">' + String(b.order).padStart(2,"0") + '</span>' +
+        '<span class="group-name">' + escapeHtml(b.name) + '</span>' +
+        '<span class="group-count num">' + members.length + '</span>' +
+        '</div>' +
+        '<div class="group-body" data-board="' + b.id + '">' + body + '</div>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  function renderTray(){
+    if (!selectedId || !playersById[selectedId]){
+      el.tray.hidden = true;
+      return;
+    }
+    var p = playersById[selectedId];
+    el.tray.hidden = false;
+    el.trayPlayer.innerHTML =
+      avatarHtml(p, 38) +
+      '<div><div class="tray-player-name">' + escapeHtml(p.name) + '</div>' +
+      '<div class="tray-player-sub">' + POS_LABEL[p.position] + ' を配属先へ移動</div></div>';
+    var current = assignments[p.id];
+    var targets = boards.map(function(b){
+      return '<button type="button" class="tray-target' + (current === b.id ? " current" : "") + '" data-target="' + b.id + '">' +
+        String(b.order).padStart(2,"0") + ' ' + escapeHtml(b.name) + '</button>';
+    }).join("");
+    targets += '<button type="button" class="tray-target unassign" data-target="">未配属に戻す</button>';
+    el.trayTargets.innerHTML = targets;
+  }
+
+  function renderAll(){
+    renderStats();
+    renderDistribution();
+    renderPool();
+    renderGroups();
+    renderTray();
+  }
+
+  /* ---------------- state mutation ---------------- */
+
+  function persistOne(playerId, boardId){
+    assignments[playerId] = boardId || null;
+    renderAll();
+    saveLocal();
+  }
+
+  function persistAll(next){
+    assignments = next;
+    renderAll();
+    saveLocal();
+  }
+
+  function assignPlayer(playerId, boardId){
+    persistOne(playerId, boardId);
+  }
+
+  function selectPlayer(id){
+    selectedId = (selectedId === id) ? null : id;
+    renderPool(); renderGroups(); renderTray();
+  }
+
+  function autoAssign(){
+    var buckets = { DFGK: [], MF: [], FW: [] };
+    players.forEach(function(p){
+      if (!isAssigned(p.id)) buckets[p.position].push(p);
+    });
+    Object.keys(buckets).forEach(function(pos){
+      var arr = buckets[pos];
+      for (var i = arr.length - 1; i > 0; i--){
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+      }
+    });
+    var next = Object.assign({}, assignments);
+    function currentCount(boardId){
+      return players.filter(function(p){ return next[p.id] === boardId; }).length;
+    }
+    ["DFGK","MF","FW"].forEach(function(pos){
+      buckets[pos].forEach(function(p){
+        var target = boards.slice().sort(function(a,b){ return currentCount(a.id) - currentCount(b.id); })[0];
+        next[p.id] = target.id;
+      });
+    });
+    persistAll(next);
+  }
+
+  function resetAll(){
+    if (!window.confirm("すべての配属をリセットして未配属に戻します。よろしいですか？")) return;
+    var next = {};
+    players.forEach(function(p){ next[p.id] = null; });
+    persistAll(next);
+  }
+
+  /* ---------------- CSV export ---------------- */
+
+  function csvEscape(v){
+    var s = String(v == null ? "" : v);
+    if (/[",\n]/.test(s)) s = '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function buildCsv(){
+    var rows = [["グループ","ポジション","名前","コメント"]];
+    boards.forEach(function(b){
+      players.filter(function(p){ return assignments[p.id] === b.id; }).forEach(function(p){
+        rows.push([b.name, POS_LABEL[p.position], p.name, p.comment || ""]);
+      });
+    });
+    var unassigned = players.filter(function(p){ return !isAssigned(p.id); });
+    unassigned.forEach(function(p){
+      rows.push(["未配属", POS_LABEL[p.position], p.name, p.comment || ""]);
+    });
+    return "﻿" + rows.map(function(r){ return r.map(csvEscape).join(","); }).join("\r\n");
+  }
+
+  function exportCsv(){
+    var csv = buildCsv();
+    var d = new Date();
+    var stamp = d.getFullYear() + String(d.getMonth()+1).padStart(2,"0") + String(d.getDate()).padStart(2,"0");
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "フットサル編成_" + stamp + ".csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /* ---------------- events ---------------- */
+
+  el.searchInput.addEventListener("input", function(e){
+    searchTerm = e.target.value.trim().toLowerCase();
+    renderPool(); renderGroups();
+  });
+
+  el.filterChips.addEventListener("click", function(e){
+    var btn = e.target.closest(".chip");
+    if (!btn) return;
+    filterPos = btn.dataset.pos;
+    Array.prototype.forEach.call(el.filterChips.querySelectorAll(".chip"), function(c){
+      c.classList.toggle("active", c === btn);
+    });
+    renderPool(); renderGroups();
+  });
+
+  el.autoAssignBtn.addEventListener("click", autoAssign);
+  el.resetBtn.addEventListener("click", resetAll);
+  el.exportBtn.addEventListener("click", exportCsv);
+  el.trayCancel.addEventListener("click", function(){ selectedId = null; renderPool(); renderGroups(); renderTray(); });
+
+  el.trayTargets.addEventListener("click", function(e){
+    var btn = e.target.closest(".tray-target");
+    if (!btn || !selectedId) return;
+    var target = btn.dataset.target || null;
+    var id = selectedId;
+    selectedId = null;
+    assignPlayer(id, target);
+  });
+
+  function onRowClick(e){
+    var removeBtn = e.target.closest(".remove-btn");
+    if (removeBtn){
+      e.stopPropagation();
+      assignPlayer(removeBtn.dataset.remove, null);
+      return;
+    }
+    var row = e.target.closest("[data-player]");
+    if (!row) return;
+    selectPlayer(row.dataset.player);
+  }
+  function onRowKeydown(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var row = e.target.closest("[data-player]");
+    if (!row) return;
+    e.preventDefault();
+    selectPlayer(row.dataset.player);
+  }
+
+  el.poolList.addEventListener("click", onRowClick);
+  el.poolList.addEventListener("keydown", onRowKeydown);
+  el.groupsGrid.addEventListener("click", function(e){
+    var removeBtn = e.target.closest(".remove-btn");
+    if (removeBtn){
+      e.stopPropagation();
+      assignPlayer(removeBtn.dataset.remove, null);
+      return;
+    }
+    var row = e.target.closest("[data-player]");
+    if (row){ selectPlayer(row.dataset.player); return; }
+    // clicked empty area of a group -> assign selected player here
+    var body = e.target.closest(".group-body");
+    if (body && selectedId){
+      var id = selectedId; selectedId = null;
+      assignPlayer(id, body.dataset.board);
+    }
+  });
+  el.groupsGrid.addEventListener("keydown", onRowKeydown);
+
+  el.poolPanel.addEventListener("click", function(e){
+    if (e.target.closest("[data-player]") || e.target.closest("h2") || e.target.closest("p")) return;
+    if (selectedId){
+      var id = selectedId; selectedId = null;
+      assignPlayer(id, null);
+    }
+  });
+
+  /* ---- native drag & drop (desktop enhancement) ---- */
+  document.addEventListener("dragstart", function(e){
+    var row = e.target.closest("[data-player]");
+    if (row){ row.draggable = true; e.dataTransfer.setData("text/plain", row.dataset.player); }
+  }, true);
+
+  function markDraggable(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player]"), function(r){ r.draggable = true; });
+  }
+
+  el.groupsGrid.addEventListener("dragover", function(e){
+    var body = e.target.closest(".group-body");
+    if (!body) return;
+    e.preventDefault();
+    body.closest(".group-card").classList.add("drop-hover");
+  });
+  el.groupsGrid.addEventListener("dragleave", function(e){
+    var card = e.target.closest(".group-card");
+    if (card) card.classList.remove("drop-hover");
+  });
+  el.groupsGrid.addEventListener("drop", function(e){
+    var body = e.target.closest(".group-body");
+    Array.prototype.forEach.call(el.groupsGrid.querySelectorAll(".group-card"), function(c){ c.classList.remove("drop-hover"); });
+    if (!body) return;
+    e.preventDefault();
+    var id = e.dataTransfer.getData("text/plain");
+    if (id) { selectedId = null; assignPlayer(id, body.dataset.board); }
+  });
+  el.poolPanel.addEventListener("dragover", function(e){ e.preventDefault(); });
+  el.poolPanel.addEventListener("drop", function(e){
+    e.preventDefault();
+    var id = e.dataTransfer.getData("text/plain");
+    if (id) { selectedId = null; assignPlayer(id, null); }
+  });
+
+  /* ---------------- boot ---------------- */
+
+  function setSync(){
+    el.syncPill.className = "sync-pill " + (storageAvailable ? "on" : "off");
+    el.syncLabel.textContent = storageAvailable ? "この端末に自動保存" : "保存できません（未保存）";
+  }
+
+  function boot(seed){
+    players = seed.players;
+    boards = seed.boards;
+    playersById = {};
+    players.forEach(function(p){ playersById[p.id] = p; });
+
+    var localSaved = loadLocal();
+    assignments = localSaved || seed.assignments || {};
+
+    renderAll();
+    setSync();
+    markDraggable();
+    var mo = new MutationObserver(markDraggable);
+    mo.observe(el.groupsGrid, { childList:true });
+    mo.observe(el.poolList, { childList:true });
+  }
+
+  async function loadSeed(){
+    var res = await fetch("roster.json");
+    var roster = await res.json();
+    var boardsRes = await fetch("boards.json");
+    var boardsRaw = await boardsRes.json();
+    var boardsSorted = boardsRaw
+      .map(function(b){ return { id: b.id, name: b.name, order: b.order }; })
+      .sort(function(a,b){ return a.order - b.order; });
+    var seedAssignments = {};
+    boardsRaw.forEach(function(b){
+      Object.keys(b.assignments || {}).forEach(function(pid){ seedAssignments[pid] = b.id; });
+    });
+    return { players: roster, boards: boardsSorted, assignments: seedAssignments };
+  }
+
+  loadSeed().then(boot).catch(function(err){
+    el.poolList.innerHTML = '<div class="pool-empty">データの読み込みに失敗しました</div>';
+    console.error(err);
+  });
+})();
+</script>
+</body>
+</html>
