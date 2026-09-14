@@ -456,20 +456,24 @@
     text-overflow:ellipsis;
     white-space:nowrap;
   }
-  .pitch-empty-hint{
-    position:absolute;
-    inset:0;
+  .pitch-slot-empty{
+    width:32px; height:32px;
+    border-radius:50%;
+    border:2px dashed rgba(255,255,255,.6);
+    background:rgba(255,255,255,.08);
     display:flex;
     align-items:center;
     justify-content:center;
-    text-align:center;
-    font-size:11px;
-    padding:20px;
-    color:rgba(255,255,255,.9);
-    text-shadow:0 1px 2px rgba(0,0,0,.5);
-    pointer-events:none;
-    z-index:2;
+    flex:0 0 auto;
   }
+  .pitch-slot-empty .ps-label{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.02em;
+    color:rgba(255,255,255,.85);
+  }
+  .pitch-token.is-empty{ cursor:default; }
 
   /* ---------- player rows / cards ---------- */
   .pool-row, .member-row{
@@ -684,6 +688,7 @@
   "use strict";
 
   var POS_LABEL = { DFGK:"DF/GK", MF:"MF", FW:"FW" };
+  var SLOT_TEMPLATE = { FW:2, MF:2, DFGK:1 }; // fixed formation slots per group
   var STORAGE_KEY = "futsal-board:assignments:v1";
 
   var players = [];        // full roster
@@ -832,17 +837,30 @@
     );
   }
 
+  function pitchEmptySlotHtml(pos){
+    return (
+      '<div class="pitch-token is-empty" aria-hidden="true">' +
+      '<div class="pitch-slot-empty"><span class="ps-label">' + POS_LABEL[pos] + '</span></div>' +
+      '<span class="pt-name">&nbsp;</span>' +
+      '</div>'
+    );
+  }
+
+  function pitchRowHtml(pos, members){
+    var list = members.filter(function(p){ return p.position === pos; });
+    var slotCount = SLOT_TEMPLATE[pos] || 0;
+    var emptyCount = Math.max(0, slotCount - list.length);
+    var html = list.map(pitchTokenHtml).join("");
+    for (var i = 0; i < emptyCount; i++){ html += pitchEmptySlotHtml(pos); }
+    return html;
+  }
+
   function buildPitchHtml(members){
-    var fw = members.filter(function(p){ return p.position === "FW"; });
-    var mf = members.filter(function(p){ return p.position === "MF"; });
-    var df = members.filter(function(p){ return p.position === "DFGK"; });
-    var emptyHint = members.length ? "" : '<div class="pitch-empty-hint">ここに選手をドラッグ、<br>または選択して割り当て</div>';
     return (
       '<div class="pitch">' +
-      emptyHint +
-      '<div class="pitch-row pitch-row-fw">' + fw.map(pitchTokenHtml).join("") + '</div>' +
-      '<div class="pitch-row pitch-row-mf">' + mf.map(pitchTokenHtml).join("") + '</div>' +
-      '<div class="pitch-row pitch-row-df">' + df.map(pitchTokenHtml).join("") + '</div>' +
+      '<div class="pitch-row pitch-row-fw">' + pitchRowHtml("FW", members) + '</div>' +
+      '<div class="pitch-row pitch-row-mf">' + pitchRowHtml("MF", members) + '</div>' +
+      '<div class="pitch-row pitch-row-df">' + pitchRowHtml("DFGK", members) + '</div>' +
       '</div>'
     );
   }
