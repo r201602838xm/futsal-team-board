@@ -632,6 +632,73 @@
     padding-top:8px;
   }
   [hidden]{ display:none !important; }
+
+  /* ---------- admin summary view ---------- */
+  #adminView{ display:flex; flex-direction:column; gap:14px; }
+  .admin-note{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:12.5px;
+    color:var(--ink-dim);
+    background:var(--accent-3-soft);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 14px;
+  }
+  .admin-note a{ color:var(--accent-3); font-weight:600; text-decoration:none; white-space:nowrap; }
+  .admin-note a:hover{ text-decoration:underline; }
+  .admin-groups{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:12px;
+  }
+  .admin-group-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+  }
+  .admin-group-head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    padding:10px 12px 0;
+  }
+  .admin-group-sub{
+    font-size:11px;
+    color:var(--ink-dim);
+    padding:2px 12px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-group-body{
+    padding:8px 10px 10px;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .admin-member-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:4px 2px;
+  }
+  .admin-member-row .avatar, .admin-member-row .avatar-fallback{ width:28px; height:28px; font-size:12px; }
+  .admin-member-name{
+    flex:1 1 auto;
+    min-width:0;
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .admin-empty{ font-size:12px; color:var(--ink-dim); padding:8px 2px; }
+  .admin-unassigned .admin-group-head .group-name{ color:var(--danger); }
 </style>
 </head>
 <body>
@@ -646,41 +713,51 @@
 
   <div class="distribution" id="distribution"></div>
 
-  <div class="toolbar">
-    <input type="search" id="searchInput" placeholder="名前で検索" aria-label="名前で検索">
-    <div class="filter-chips" id="filterChips">
-      <button class="chip active" data-pos="all" type="button">全員</button>
-      <button class="chip" data-pos="DFGK" type="button">DF/GK</button>
-      <button class="chip" data-pos="MF" type="button">MF</button>
-      <button class="chip" data-pos="FW" type="button">FW</button>
+  <div id="editorView">
+    <div class="toolbar">
+      <input type="search" id="searchInput" placeholder="名前で検索" aria-label="名前で検索">
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-pos="all" type="button">全員</button>
+        <button class="chip" data-pos="DFGK" type="button">DF/GK</button>
+        <button class="chip" data-pos="MF" type="button">MF</button>
+        <button class="chip" data-pos="FW" type="button">FW</button>
+      </div>
+      <div class="view-toggle" id="viewToggle">
+        <button class="chip active" data-view="list" type="button">リスト表示</button>
+        <button class="chip" data-view="pitch" type="button">ピッチ表示</button>
+      </div>
+      <div class="actions">
+        <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncLabel">読み込み中</span></span>
+        <button class="btn btn-accent" id="autoAssignBtn" type="button">未配属を自動振り分け</button>
+        <button class="btn btn-ghost" id="exportBtn" type="button">CSV書き出し</button>
+        <button class="btn btn-danger-ghost" id="resetBtn" type="button">リセット</button>
+      </div>
     </div>
-    <div class="view-toggle" id="viewToggle">
-      <button class="chip active" data-view="list" type="button">リスト表示</button>
-      <button class="chip" data-view="pitch" type="button">ピッチ表示</button>
+
+    <div class="board-layout">
+      <aside class="pool" id="poolPanel">
+        <h2>未配属 <span class="count-badge" id="poolCount">0</span></h2>
+        <p class="pool-hint">選手をクリックして選択し、下のトレイからグループを選んでください</p>
+        <div class="pool-list" id="poolList"><div class="loading">読み込み中…</div></div>
+      </aside>
+      <section class="groups-grid" id="groupsGrid"></section>
     </div>
-    <div class="actions">
-      <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncLabel">読み込み中</span></span>
-      <button class="btn btn-accent" id="autoAssignBtn" type="button">未配属を自動振り分け</button>
-      <button class="btn btn-ghost" id="exportBtn" type="button">CSV書き出し</button>
-      <button class="btn btn-danger-ghost" id="resetBtn" type="button">リセット</button>
+
+    <p class="footnote">配属状況はこのブラウザにのみ保存されます（他の人とは共有されません）</p>
+
+    <div class="tray" id="tray" hidden>
+      <div class="tray-player" id="trayPlayer"></div>
+      <div class="tray-targets" id="trayTargets"></div>
+      <button class="tray-cancel" id="trayCancel" type="button" aria-label="選択解除">✕</button>
     </div>
   </div>
 
-  <div class="board-layout">
-    <aside class="pool" id="poolPanel">
-      <h2>未配属 <span class="count-badge" id="poolCount">0</span></h2>
-      <p class="pool-hint">選手をクリックして選択し、下のトレイからグループを選んでください</p>
-      <div class="pool-list" id="poolList"><div class="loading">読み込み中…</div></div>
-    </aside>
-    <section class="groups-grid" id="groupsGrid"></section>
-  </div>
-
-  <p class="footnote">配属状況はこのブラウザにのみ保存されます（他の人とは共有されません）</p>
-
-  <div class="tray" id="tray" hidden>
-    <div class="tray-player" id="trayPlayer"></div>
-    <div class="tray-targets" id="trayTargets"></div>
-    <button class="tray-cancel" id="trayCancel" type="button" aria-label="選択解除">✕</button>
+  <div id="adminView" hidden>
+    <div class="admin-note">
+      <span>管理者用の読み取り専用ビューです。編成の変更はできません（このブラウザに保存された内容のみ表示）。</span>
+      <a href="#" id="backToEditor">← 編成ボードに戻る</a>
+    </div>
+    <div class="admin-groups" id="adminGroups"></div>
   </div>
 </div>
 
@@ -721,7 +798,30 @@
     trayTargets: document.getElementById("trayTargets"),
     trayCancel: document.getElementById("trayCancel"),
     poolPanel: document.getElementById("poolPanel"),
+    editorView: document.getElementById("editorView"),
+    adminView: document.getElementById("adminView"),
+    adminGroups: document.getElementById("adminGroups"),
+    backToEditor: document.getElementById("backToEditor"),
   };
+
+  var adminMode = location.hash.replace("#", "") === "admin";
+
+  function applyMode(){
+    el.editorView.hidden = adminMode;
+    el.adminView.hidden = !adminMode;
+  }
+
+  window.addEventListener("hashchange", function(){
+    adminMode = location.hash.replace("#", "") === "admin";
+    applyMode();
+  });
+
+  if (el.backToEditor){
+    el.backToEditor.addEventListener("click", function(e){
+      e.preventDefault();
+      location.hash = "";
+    });
+  }
 
   function escapeHtml(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
@@ -910,12 +1010,61 @@
     el.trayTargets.innerHTML = targets;
   }
 
+  function adminMemberRowHtml(p){
+    return (
+      '<div class="admin-member-row">' +
+      avatarHtml(p, 28) +
+      '<span class="admin-member-name">' + escapeHtml(p.name) + '</span>' +
+      '<span class="pos-chip pos-' + p.position + '">' + POS_LABEL[p.position] + '</span>' +
+      '</div>'
+    );
+  }
+
+  function renderAdminGroups(){
+    if (!el.adminGroups) return;
+    var html = boards.map(function(b){
+      var members = players.filter(function(p){ return assignments[p.id] === b.id; });
+      var byPos = { DFGK:0, MF:0, FW:0 };
+      members.forEach(function(p){ byPos[p.position]++; });
+      var breakdown = "DF/GK " + byPos.DFGK + " ・ MF " + byPos.MF + " ・ FW " + byPos.FW;
+      var rows = members.length
+        ? members.map(adminMemberRowHtml).join("")
+        : '<div class="admin-empty">未配属</div>';
+      return (
+        '<div class="admin-group-card">' +
+        '<div class="admin-group-head">' +
+        '<span class="group-order num">' + String(b.order).padStart(2,"0") + '</span>' +
+        '<span class="group-name">' + escapeHtml(b.name) + '</span>' +
+        '<span class="group-count num">' + members.length + '</span>' +
+        '</div>' +
+        '<div class="admin-group-sub">' + breakdown + '</div>' +
+        '<div class="admin-group-body">' + rows + '</div>' +
+        '</div>'
+      );
+    }).join("");
+
+    var unassigned = players.filter(function(p){ return !isAssigned(p.id); });
+    if (unassigned.length){
+      html += (
+        '<div class="admin-group-card admin-unassigned">' +
+        '<div class="admin-group-head">' +
+        '<span class="group-name">未配属</span>' +
+        '<span class="group-count num">' + unassigned.length + '</span>' +
+        '</div>' +
+        '<div class="admin-group-body">' + unassigned.map(adminMemberRowHtml).join("") + '</div>' +
+        '</div>'
+      );
+    }
+    el.adminGroups.innerHTML = html;
+  }
+
   function renderAll(){
     renderStats();
     renderDistribution();
     renderPool();
     renderGroups();
     renderTray();
+    renderAdminGroups();
   }
 
   /* ---------------- state mutation ---------------- */
@@ -1146,6 +1295,7 @@
     var localSaved = loadLocal();
     assignments = localSaved || seed.assignments || {};
 
+    applyMode();
     renderAll();
     setSync();
     markDraggable();
