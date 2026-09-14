@@ -771,6 +771,31 @@
     padding-top:clamp(10px,2vw,16px); border-top:1px solid var(--line);
   }
   .reveal-counter{ font-size:12.5px; color:var(--ink-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  /* ---------- zoom mode (large squad board for shared-screen viewing) ---------- */
+  .app.zoom-mode .groups-grid{
+    grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));
+    gap:18px;
+  }
+  .app.zoom-mode .group-card{ min-height:190px; }
+  .app.zoom-mode .group-head{ padding:14px 16px; gap:10px; }
+  .app.zoom-mode .group-order{ font-size:34px; }
+  .app.zoom-mode .group-name-input, .app.zoom-mode .group-name{ font-size:18px; }
+  .app.zoom-mode .group-count{ font-size:17px; }
+  .app.zoom-mode .group-body{ padding:12px; gap:9px; }
+
+  .app.zoom-mode .member-row .avatar, .app.zoom-mode .member-row .avatar-fallback{ width:54px; height:54px; font-size:20px; }
+  .app.zoom-mode .member-row .row-name{ font-size:19px; }
+  .app.zoom-mode .member-row .row-comment{ font-size:14.5px; }
+  .app.zoom-mode .member-row .pos-chip{ font-size:13.5px; padding:3px 9px; }
+
+  .app.zoom-mode .pitch{ min-height:340px; padding:16px 8px; }
+  .app.zoom-mode .pitch-row{ gap:14px; min-height:88px; }
+  .app.zoom-mode .pitch-token{ width:92px; gap:6px; }
+  .app.zoom-mode .pitch-token .avatar, .app.zoom-mode .pitch-token .avatar-fallback{ width:64px; height:64px; }
+  .app.zoom-mode .pitch-token .pt-name{ font-size:16px; max-width:92px; font-weight:700; }
+  .app.zoom-mode .pitch-slot-empty{ width:64px; height:64px; }
+  .app.zoom-mode .pitch-slot-empty .ps-label{ font-size:14px; }
 </style>
 </head>
 <body>
@@ -798,6 +823,7 @@
         <button class="chip active" data-view="list" type="button">リスト表示</button>
         <button class="chip" data-view="pitch" type="button">ピッチ表示</button>
       </div>
+      <button class="chip" id="zoomToggleBtn" type="button" aria-pressed="false">大きく表示</button>
       <div class="actions">
         <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncLabel">読み込み中</span></span>
         <button class="btn btn-accent" id="autoAssignBtn" type="button">未配属を自動振り分け</button>
@@ -875,8 +901,10 @@
   var storageAvailable = false;
   var revealList = [];
   var revealIndex = -1;
+  var zoomMode = false;
 
   var el = {
+    appRoot: document.querySelector(".app"),
     stats: document.getElementById("stats"),
     distribution: document.getElementById("distribution"),
     poolList: document.getElementById("poolList"),
@@ -885,6 +913,7 @@
     searchInput: document.getElementById("searchInput"),
     filterChips: document.getElementById("filterChips"),
     viewToggle: document.getElementById("viewToggle"),
+    zoomToggleBtn: document.getElementById("zoomToggleBtn"),
     autoAssignBtn: document.getElementById("autoAssignBtn"),
     resetBtn: document.getElementById("resetBtn"),
     exportBtn: document.getElementById("exportBtn"),
@@ -1414,6 +1443,13 @@
       c.classList.toggle("active", c === btn);
     });
     renderGroups();
+  });
+
+  el.zoomToggleBtn.addEventListener("click", function(){
+    zoomMode = !zoomMode;
+    el.appRoot.classList.toggle("zoom-mode", zoomMode);
+    el.zoomToggleBtn.classList.toggle("active", zoomMode);
+    el.zoomToggleBtn.setAttribute("aria-pressed", zoomMode ? "true" : "false");
   });
 
   el.autoAssignBtn.addEventListener("click", autoAssign);
