@@ -87,13 +87,19 @@
   .num{ font-family:'Barlow Condensed','Noto Sans JP',sans-serif; font-variant-numeric:tabular-nums; }
 
   .app{
-    max-width:1280px;
+    max-width:1600px;
     margin:0 auto;
     padding: 20px 16px 96px;
     display:flex;
     flex-direction:column;
     gap:16px;
   }
+    /* admin/projection mode: drop the width cap and the editor-only chrome so the
+       squad board itself fills the whole screen when shared or projected */
+    .app.admin-mode{ max-width:none; }
+    .app.admin-mode .topbar,
+    .app.admin-mode .distribution{ display:none; }
+    .app.admin-mode{ padding-top:14px; }
 
   /* ---------- header ---------- */
   .topbar{
@@ -943,6 +949,7 @@
   function applyMode(){
     el.editorView.hidden = adminMode;
     el.adminView.hidden = !adminMode;
+    el.appRoot.classList.toggle("admin-mode", adminMode);
     closeReveal();
   }
 
