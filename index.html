@@ -226,6 +226,20 @@
   .chip.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
   .chip:focus-visible, .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
 
+  .formation-editor{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .formation-label{ font-size:11.5px; font-weight:600; color:var(--ink-dim); }
+  .formation-field{ display:flex; align-items:center; gap:4px; cursor:default; }
+  .formation-field span{
+    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:11px;
+    letter-spacing:.02em; color:var(--ink-dim);
+  }
+  .formation-field input{
+    width:40px; padding:5px 4px; border-radius:7px; border:1px solid var(--line);
+    background:var(--surface); color:var(--ink); font-family:inherit; font-size:12.5px;
+    text-align:center; font-variant-numeric:tabular-nums;
+  }
+  .formation-field input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
   .actions{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:auto; }
   .btn{
     border-radius:9px;
@@ -667,58 +681,16 @@
   }
   .admin-note a{ color:var(--accent-3); font-weight:600; text-decoration:none; white-space:nowrap; }
   .admin-note a:hover{ text-decoration:underline; }
-  .admin-groups{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
-    gap:12px;
-  }
-  .admin-group-card{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:12px;
-    box-shadow:var(--shadow);
-    display:flex;
-    flex-direction:column;
-  }
-  .admin-group-head{
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-    padding:10px 12px 0;
-  }
   .admin-group-sub{
     font-size:11px;
     color:var(--ink-dim);
-    padding:2px 12px 8px;
-    border-bottom:1px solid var(--line);
+    padding:4px 12px 8px;
   }
-  .admin-group-body{
-    padding:8px 10px 10px;
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-  }
-  .admin-member-row{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:4px 2px;
-  }
-  .admin-member-row .avatar, .admin-member-row .avatar-fallback{ width:28px; height:28px; font-size:12px; }
-  .admin-member-name{
-    flex:1 1 auto;
-    min-width:0;
-    font-size:13px;
-    font-weight:600;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .admin-empty{ font-size:12px; color:var(--ink-dim); padding:8px 2px; }
-  .admin-unassigned .admin-group-head .group-name{ color:var(--danger); }
+  .admin-unassigned .group-head .group-name{ color:var(--danger); }
   .admin-group-card{ cursor:pointer; transition:box-shadow .15s ease; }
   .admin-group-card:hover, .admin-group-card:focus-visible{ box-shadow:0 0 0 2px var(--accent-soft); outline:none; }
   .admin-reveal-hint{ font-size:10.5px; color:var(--ink-dim); padding:0 12px 10px; text-align:right; }
+  .app.zoom-mode .admin-group-sub{ font-size:13px; }
 
   /* ---------- reveal overlay (admin: show one team full-screen) ---------- */
   .reveal-overlay{
@@ -824,6 +796,12 @@
         <button class="chip" data-view="pitch" type="button">ピッチ表示</button>
       </div>
       <button class="chip" id="zoomToggleBtn" type="button" aria-pressed="false">大きく表示</button>
+      <div class="formation-editor" id="formationEditor" title="ピッチ表示のフォーメーション（人数）">
+        <span class="formation-label">フォーメーション</span>
+        <label class="formation-field"><span>FW</span><input type="number" id="slotFW" min="0" max="15" value="3" inputmode="numeric"></label>
+        <label class="formation-field"><span>MF</span><input type="number" id="slotMF" min="0" max="15" value="4" inputmode="numeric"></label>
+        <label class="formation-field"><span>DF/GK</span><input type="number" id="slotDFGK" min="0" max="15" value="4" inputmode="numeric"></label>
+      </div>
       <div class="actions">
         <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncLabel">読み込み中</span></span>
         <button class="btn btn-accent" id="autoAssignBtn" type="button">未配属を自動振り分け</button>
@@ -852,10 +830,23 @@
 
   <div id="adminView" hidden>
     <div class="admin-note">
-      <span>管理者用の読み取り専用ビューです。編成の変更はできません（このブラウザに保存された内容のみ表示）。</span>
+      <span>管理者用の読み取り専用ビューです。編成の変更はできません（このブラウザに保存された内容のみ表示）。この画面をそのまま共有・投影できます。</span>
       <a href="#" id="backToEditor">← 編成ボードに戻る</a>
     </div>
-    <div class="admin-groups" id="adminGroups"></div>
+    <div class="toolbar">
+      <div class="view-toggle" id="adminViewToggle">
+        <button class="chip active" data-view="list" type="button">リスト表示</button>
+        <button class="chip" data-view="pitch" type="button">ピッチ表示</button>
+      </div>
+      <button class="chip" id="adminZoomToggleBtn" type="button" aria-pressed="false">大きく表示</button>
+      <div class="formation-editor" id="adminFormationEditor" title="ピッチ表示のフォーメーション（人数）">
+        <span class="formation-label">フォーメーション</span>
+        <label class="formation-field"><span>FW</span><input type="number" id="adminSlotFW" min="0" max="15" value="3" inputmode="numeric"></label>
+        <label class="formation-field"><span>MF</span><input type="number" id="adminSlotMF" min="0" max="15" value="4" inputmode="numeric"></label>
+        <label class="formation-field"><span>DF/GK</span><input type="number" id="adminSlotDFGK" min="0" max="15" value="4" inputmode="numeric"></label>
+      </div>
+    </div>
+    <div class="groups-grid" id="adminGroups"></div>
   </div>
 </div>
 
@@ -881,7 +872,7 @@
   "use strict";
 
   var POS_LABEL = { DFGK:"DF/GK", MF:"MF", FW:"FW" };
-  var SLOT_TEMPLATE = { FW:4, MF:3, DFGK:4 }; // 11人制フォーメーション（DF3+GK1をDF/GK区分に統合）
+  var slotTemplate = { FW:3, MF:4, DFGK:4 }; // ピッチ表示のフォーメーション（人数）。管理画面で変更可能・固定ではない
   var STORAGE_KEY = "futsal-board:assignments:v1";
   var LETTERS = ["A","B","C","D","E","F","G","H"];
   function boardLetter(b){ return LETTERS[(b.order || 1) - 1] || String(b.order); }
@@ -914,6 +905,9 @@
     filterChips: document.getElementById("filterChips"),
     viewToggle: document.getElementById("viewToggle"),
     zoomToggleBtn: document.getElementById("zoomToggleBtn"),
+    slotFW: document.getElementById("slotFW"),
+    slotMF: document.getElementById("slotMF"),
+    slotDFGK: document.getElementById("slotDFGK"),
     autoAssignBtn: document.getElementById("autoAssignBtn"),
     resetBtn: document.getElementById("resetBtn"),
     exportBtn: document.getElementById("exportBtn"),
@@ -926,6 +920,11 @@
     poolPanel: document.getElementById("poolPanel"),
     editorView: document.getElementById("editorView"),
     adminView: document.getElementById("adminView"),
+    adminViewToggle: document.getElementById("adminViewToggle"),
+    adminZoomToggleBtn: document.getElementById("adminZoomToggleBtn"),
+    adminSlotFW: document.getElementById("adminSlotFW"),
+    adminSlotMF: document.getElementById("adminSlotMF"),
+    adminSlotDFGK: document.getElementById("adminSlotDFGK"),
     adminGroups: document.getElementById("adminGroups"),
     backToEditor: document.getElementById("backToEditor"),
     revealOverlay: document.getElementById("revealOverlay"),
@@ -986,10 +985,10 @@
       if (!raw) return null;
       var parsed = JSON.parse(raw);
       if (parsed && parsed.__v === 2){
-        return { assignments: parsed.assignments || {}, boardNames: parsed.boardNames || {} };
+        return { assignments: parsed.assignments || {}, boardNames: parsed.boardNames || {}, slotTemplate: parsed.slotTemplate || null };
       }
       // legacy format: the stored value was the assignments map itself
-      return { assignments: parsed || {}, boardNames: {} };
+      return { assignments: parsed || {}, boardNames: {}, slotTemplate: null };
     } catch(e){
       storageAvailable = false;
       return null;
@@ -1004,7 +1003,7 @@
 
   function saveLocal(){
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ __v: 2, assignments: assignments, boardNames: currentBoardNames() }));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ __v: 2, assignments: assignments, boardNames: currentBoardNames(), slotTemplate: slotTemplate }));
       storageAvailable = true;
     } catch(e){
       storageAvailable = false;
@@ -1049,12 +1048,15 @@
   function playerRowHtml(p, kind){
     var dimmed = (searchTerm || filterPos !== "all") && !matchesFilter(p) ? " dimmed" : "";
     var sel = (selectedId === p.id) ? " selected" : "";
-    var comment = kind === "member" && p.comment ? '<div class="row-comment" title="' + escapeHtml(p.comment) + '">' + escapeHtml(p.comment) + '</div>' : "";
+    var showComment = (kind === "member" || kind === "readonly") && p.comment;
+    var comment = showComment ? '<div class="row-comment" title="' + escapeHtml(p.comment) + '">' + escapeHtml(p.comment) + '</div>' : "";
     var removeBtn = kind === "member" ? '<button class="remove-btn" data-remove="' + p.id + '" title="未配属に戻す" aria-label="未配属に戻す">✕</button>' : "";
+    var rowClass = kind === "pool" ? "pool-row" : "member-row";
+    var interactiveAttrs = kind === "readonly" ? "" : ' role="button" tabindex="0"';
     return (
-      '<div class="' + (kind === "member" ? "member-row" : "pool-row") + dimmed + sel + '" ' +
-      'data-player="' + p.id + '" role="button" tabindex="0">' +
-      avatarHtml(p, kind === "member" ? 42 : 32) +
+      '<div class="' + rowClass + dimmed + sel + '" ' +
+      'data-player="' + p.id + '"' + interactiveAttrs + '>' +
+      avatarHtml(p, kind === "pool" ? 32 : 42) +
       '<div class="row-main">' +
       '<div class="row-name">' + escapeHtml(p.name) + '</div>' +
       comment +
@@ -1097,7 +1099,7 @@
 
   function pitchRowHtml(pos, members){
     var list = members.filter(function(p){ return p.position === pos; });
-    var slotCount = SLOT_TEMPLATE[pos] || 0;
+    var slotCount = slotTemplate[pos] || 0;
     var emptyCount = Math.max(0, slotCount - list.length);
     var html = list.map(pitchTokenHtml).join("");
     for (var i = 0; i < emptyCount; i++){ html += pitchEmptySlotHtml(pos); }
@@ -1158,14 +1160,11 @@
     el.trayTargets.innerHTML = targets;
   }
 
-  function adminMemberRowHtml(p){
-    return (
-      '<div class="admin-member-row">' +
-      avatarHtml(p, 28) +
-      '<span class="admin-member-name">' + escapeHtml(p.name) + '</span>' +
-      '<span class="pos-chip pos-' + p.position + '">' + POS_LABEL[p.position] + '</span>' +
-      '</div>'
-    );
+  function adminGroupBodyHtml(members, emptyLabel, forceList){
+    if (viewMode === "pitch" && !forceList) return buildPitchHtml(members);
+    return members.length
+      ? members.map(function(p){ return playerRowHtml(p, "readonly"); }).join("")
+      : '<div class="group-empty">' + escapeHtml(emptyLabel) + '</div>';
   }
 
   function renderAdminGroups(){
@@ -1175,18 +1174,15 @@
       var byPos = { DFGK:0, MF:0, FW:0 };
       members.forEach(function(p){ byPos[p.position]++; });
       var breakdown = "DF/GK " + byPos.DFGK + " ・ MF " + byPos.MF + " ・ FW " + byPos.FW;
-      var rows = members.length
-        ? members.map(adminMemberRowHtml).join("")
-        : '<div class="admin-empty">未配属</div>';
       return (
-        '<div class="admin-group-card" data-reveal="' + b.id + '" tabindex="0" role="button" aria-label="' + escapeHtml(boardDisplayName(b)) + 'を大きく表示">' +
-        '<div class="admin-group-head">' +
+        '<div class="group-card admin-group-card" data-reveal="' + b.id + '" tabindex="0" role="button" aria-label="' + escapeHtml(boardDisplayName(b)) + 'を大きく表示">' +
+        '<div class="group-head">' +
         '<span class="group-order num">' + boardLetter(b) + '</span>' +
         '<span class="group-name">' + escapeHtml(boardDisplayName(b)) + '</span>' +
         '<span class="group-count num">' + members.length + '</span>' +
         '</div>' +
         '<div class="admin-group-sub">' + breakdown + '</div>' +
-        '<div class="admin-group-body">' + rows + '</div>' +
+        '<div class="group-body">' + adminGroupBodyHtml(members, "未配属") + '</div>' +
         '<div class="admin-reveal-hint">タップして大きく表示</div>' +
         '</div>'
       );
@@ -1195,12 +1191,12 @@
     var unassigned = players.filter(function(p){ return !isAssigned(p.id); });
     if (unassigned.length){
       html += (
-        '<div class="admin-group-card admin-unassigned" data-reveal="unassigned" tabindex="0" role="button" aria-label="未配属を大きく表示">' +
-        '<div class="admin-group-head">' +
+        '<div class="group-card admin-group-card admin-unassigned" data-reveal="unassigned" tabindex="0" role="button" aria-label="未配属を大きく表示">' +
+        '<div class="group-head">' +
         '<span class="group-name">未配属</span>' +
         '<span class="group-count num">' + unassigned.length + '</span>' +
         '</div>' +
-        '<div class="admin-group-body">' + unassigned.map(adminMemberRowHtml).join("") + '</div>' +
+        '<div class="group-body">' + adminGroupBodyHtml(unassigned, "未配属", true) + '</div>' +
         '<div class="admin-reveal-hint">タップして大きく表示</div>' +
         '</div>'
       );
@@ -1435,22 +1431,94 @@
     renderPool(); renderGroups();
   });
 
+  function updateViewToggleUI(){
+    [el.viewToggle, el.adminViewToggle].forEach(function(group){
+      if (!group) return;
+      Array.prototype.forEach.call(group.querySelectorAll(".chip"), function(c){
+        c.classList.toggle("active", c.dataset.view === viewMode);
+      });
+    });
+  }
+  function setViewMode(mode){
+    viewMode = mode;
+    updateViewToggleUI();
+    renderGroups();
+    renderAdminGroups();
+  }
+  function updateZoomToggleUI(){
+    [el.zoomToggleBtn, el.adminZoomToggleBtn].forEach(function(btn){
+      if (!btn) return;
+      btn.classList.toggle("active", zoomMode);
+      btn.setAttribute("aria-pressed", zoomMode ? "true" : "false");
+    });
+  }
+  function setZoomMode(on){
+    zoomMode = on;
+    el.appRoot.classList.toggle("zoom-mode", zoomMode);
+    updateZoomToggleUI();
+  }
+
   el.viewToggle.addEventListener("click", function(e){
     var btn = e.target.closest(".chip");
     if (!btn) return;
-    viewMode = btn.dataset.view;
-    Array.prototype.forEach.call(el.viewToggle.querySelectorAll(".chip"), function(c){
-      c.classList.toggle("active", c === btn);
+    setViewMode(btn.dataset.view);
+  });
+  if (el.adminViewToggle){
+    el.adminViewToggle.addEventListener("click", function(e){
+      var btn = e.target.closest(".chip");
+      if (!btn) return;
+      setViewMode(btn.dataset.view);
     });
-    renderGroups();
-  });
+  }
 
-  el.zoomToggleBtn.addEventListener("click", function(){
-    zoomMode = !zoomMode;
-    el.appRoot.classList.toggle("zoom-mode", zoomMode);
-    el.zoomToggleBtn.classList.toggle("active", zoomMode);
-    el.zoomToggleBtn.setAttribute("aria-pressed", zoomMode ? "true" : "false");
-  });
+  el.zoomToggleBtn.addEventListener("click", function(){ setZoomMode(!zoomMode); });
+  if (el.adminZoomToggleBtn){
+    el.adminZoomToggleBtn.addEventListener("click", function(){ setZoomMode(!zoomMode); });
+  }
+
+  function clampSlotInt(v, fallback){
+    var n = parseInt(v, 10);
+    if (isNaN(n) || n < 0) return fallback;
+    return Math.min(15, n);
+  }
+  function updateFormationInputs(){
+    [
+      [el.slotFW, el.slotMF, el.slotDFGK],
+      [el.adminSlotFW, el.adminSlotMF, el.adminSlotDFGK]
+    ].forEach(function(group){
+      if (group[0]) group[0].value = slotTemplate.FW;
+      if (group[1]) group[1].value = slotTemplate.MF;
+      if (group[2]) group[2].value = slotTemplate.DFGK;
+    });
+  }
+  function setSlotTemplate(next){
+    slotTemplate = next;
+    updateFormationInputs();
+    renderGroups();
+    renderAdminGroups();
+    saveLocal();
+  }
+  function handleFormationChange(source){
+    setSlotTemplate({
+      FW: clampSlotInt(source.fw.value, slotTemplate.FW),
+      MF: clampSlotInt(source.mf.value, slotTemplate.MF),
+      DFGK: clampSlotInt(source.dfgk.value, slotTemplate.DFGK)
+    });
+  }
+  if (el.slotFW && el.slotMF && el.slotDFGK){
+    [el.slotFW, el.slotMF, el.slotDFGK].forEach(function(inp){
+      inp.addEventListener("change", function(){
+        handleFormationChange({ fw: el.slotFW, mf: el.slotMF, dfgk: el.slotDFGK });
+      });
+    });
+  }
+  if (el.adminSlotFW && el.adminSlotMF && el.adminSlotDFGK){
+    [el.adminSlotFW, el.adminSlotMF, el.adminSlotDFGK].forEach(function(inp){
+      inp.addEventListener("change", function(){
+        handleFormationChange({ fw: el.adminSlotFW, mf: el.adminSlotMF, dfgk: el.adminSlotDFGK });
+      });
+    });
+  }
 
   el.autoAssignBtn.addEventListener("click", autoAssign);
   el.resetBtn.addEventListener("click", resetAll);
@@ -1608,8 +1676,16 @@
         if (Object.prototype.hasOwnProperty.call(localSaved.boardNames, b.id)) b.name = localSaved.boardNames[b.id] || "";
       });
     }
+    if (localSaved && localSaved.slotTemplate){
+      slotTemplate = {
+        FW: typeof localSaved.slotTemplate.FW === "number" ? localSaved.slotTemplate.FW : slotTemplate.FW,
+        MF: typeof localSaved.slotTemplate.MF === "number" ? localSaved.slotTemplate.MF : slotTemplate.MF,
+        DFGK: typeof localSaved.slotTemplate.DFGK === "number" ? localSaved.slotTemplate.DFGK : slotTemplate.DFGK
+      };
+    }
 
     applyMode();
+    updateFormationInputs();
     renderAll();
     setSync();
     markDraggable();
